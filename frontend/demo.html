@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>飲食紀錄表</title>
+<style>
+:root {
+  --bg-primary: #faf7f2;
+  --bg-secondary: #ffffff;
+  --bg-hover: #ede8df;
+  --border: #e2d9cc;
+  --text-primary: #3d2e1e;
+  --text-secondary: #7a6652;
+  --text-muted: #b09a84;
+  --accent: #c8824a;
+  --accent-hover: #b5703a;
+  --accent-soft: rgba(200, 130, 74, 0.12);
+  --matcha: #7a9e7e;
+  --green: #5a9a6f;
+  --green-soft: rgba(90, 154, 111, 0.12);
+  --red: #c05454;
+  --blue: #5a7ea8;
+  --yellow: #b5923a;
+  --font: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang TC", "Noto Sans TC", sans-serif;
+  --shadow-lg: 0 8px 32px rgba(61, 46, 30, 0.12);
+  --shadow-card: 0 1px 4px rgba(61,46,30,0.06), 0 4px 16px rgba(61,46,30,0.06);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  min-height: 100vh;
+  font-family: var(--font);
+  color: var(--text-primary);
+  background:
+    radial-gradient(circle at 12% 8%, rgba(122, 158, 126, 0.18), transparent 32%),
+    linear-gradient(135deg, #faf7f2 0%, #f3eadf 46%, #edf4ee 100%);
+  line-height: 1.6;
+}
+
+button, input, select {
+  font-family: inherit;
+  font-size: 14px;
+}
+
+button { cursor: pointer; border: 0; }
+
+input, select {
+  width: 100%;
+  padding: 9px 12px;
+  color: var(--text-primary);
+  background: var(--bg-secondary);
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  outline: none;
+}
+
+input:focus, select:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.demo-shell {
+  width: min(1180px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 28px 0 40px;
+}
+
+.demo-hero {
+  min-height: 300px;
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) 360px;
+  align-items: center;
+  gap: 24px;
+  padding: 34px;
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(206, 196, 181, 0.78);
+  border-radius: 8px;
+  box-shadow: var(--shadow-lg);
+  backdrop-filter: blur(14px);
+}
+
+.demo-kicker {
+  color: var(--matcha);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0;
+  margin-bottom: 8px;
+}
+
+.demo-hero h1 {
+  font-size: 56px;
+  line-height: 1;
+  letter-spacing: 0;
+  margin-bottom: 16px;
+}
+
+.demo-hero p {
+  max-width: 620px;
+  color: var(--text-secondary);
+  font-size: 16px;
+}
+
+.demo-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 22px;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: #fff;
+}
+
+.btn-primary:hover { background: var(--accent-hover); }
+
+.btn-secondary {
+  background: #f5f0e8;
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+}
+
+.btn-secondary:hover { background: var(--bg-hover); }
+
+.btn-ghost {
+  background: transparent;
+  color: var(--red);
+  padding: 4px 8px;
+}
+
+.btn-sm {
+  font-size: 12px;
+  padding: 4px 8px;
+}
+
+.demo-plate {
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at center, #fff 0 39%, transparent 40%),
+    conic-gradient(from 20deg, var(--accent), var(--matcha), var(--blue), var(--yellow), var(--accent));
+  padding: 18px;
+  box-shadow: inset 0 0 0 18px rgba(255, 255, 255, 0.55), var(--shadow-lg);
+}
+
+.plate-core {
+  width: 72%;
+  aspect-ratio: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  text-align: center;
+}
+
+.plate-core span { font-size: 48px; }
+.plate-core strong { margin-top: 8px; font-size: 24px; }
+.plate-core small { color: var(--text-muted); }
+
+.demo-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.demo-panel {
+  background: rgba(255, 255, 255, 0.82);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 18px;
+  box-shadow: var(--shadow-card);
+}
+
+.demo-span-2 { grid-column: span 2; }
+
+.panel-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.panel-header h2 {
+  font-size: 18px;
+  letter-spacing: 0;
+}
+
+.panel-header p {
+  color: var(--text-muted);
+  font-size: 13px;
+  margin-top: 2px;
+}
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 100px;
+  font-size: 12px;
+  font-weight: 600;
+  background: var(--bg-hover);
+  color: var(--text-secondary);
+}
+
+.tag-accent {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.tag-green {
+  background: var(--green-soft);
+  color: var(--green);
+}
+
+.metric-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.metric-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px;
+}
+
+.metric-card span,
+.estimate-card span {
+  display: block;
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.metric-card strong {
+  display: block;
+  font-size: 30px;
+  line-height: 1.2;
+  margin-top: 4px;
+}
+
+.metric-card small {
+  color: var(--text-secondary);
+}
+
+.meter {
+  height: 7px;
+  margin-top: 10px;
+  border-radius: 999px;
+  background: var(--bg-hover);
+  overflow: hidden;
+}
+
+.meter i {
+  display: block;
+  height: 100%;
+  width: 0%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--matcha), var(--accent));
+  transition: width 0.35s ease;
+}
+
+.demo-form {
+  display: grid;
+  gap: 10px;
+}
+
+.estimate-card {
+  margin-top: 12px;
+  padding: 14px;
+  background: var(--accent-soft);
+  border: 1px solid rgba(200, 130, 74, 0.18);
+  border-radius: 8px;
+}
+
+.estimate-card strong {
+  display: block;
+  margin-top: 4px;
+}
+
+.meal-list,
+.recommend-list {
+  display: grid;
+  gap: 10px;
+}
+
+.meal-row,
+.recommend-item {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 12px;
+  align-items: center;
+  padding: 12px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.meal-title {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-weight: 700;
+}
+
+.meal-meta {
+  color: var(--text-secondary);
+  font-size: 13px;
+  margin-top: 2px;
+}
+
+.meal-score {
+  text-align: right;
+  min-width: 112px;
+}
+
+.meal-score strong {
+  display: block;
+  font-size: 18px;
+}
+
+.recommend-item {
+  grid-template-columns: 1fr;
+}
+
+.recommend-item strong {
+  font-size: 15px;
+}
+
+.recommend-item span {
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+#toast-container {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  display: grid;
+  gap: 8px;
+  z-index: 20;
+}
+
+.toast {
+  min-width: 220px;
+  max-width: 360px;
+  padding: 12px 16px;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--green);
+  border-radius: 8px;
+  box-shadow: var(--shadow-lg);
+  transition: 0.25s ease;
+}
+
+@media (max-width: 880px) {
+  .demo-hero,
+  .demo-grid,
+  .metric-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .demo-span-2 {
+    grid-column: span 1;
+  }
+
+  .demo-plate {
+    width: min(280px, 100%);
+    justify-self: center;
+  }
+}
+
+@media (max-width: 560px) {
+  .demo-shell {
+    width: min(100% - 20px, 1180px);
+    padding-top: 10px;
+  }
+
+  .demo-hero,
+  .demo-panel {
+    padding: 16px;
+  }
+
+  .demo-hero h1 {
+    font-size: 38px;
+  }
+
+  .meal-row {
+    grid-template-columns: 1fr;
+  }
+
+  .meal-score {
+    text-align: left;
+  }
+}
+</style>
+</head>
+<body>
+<main class="demo-shell">
+  <section class="demo-hero">
+    <div>
+      <div class="demo-kicker">PUBLIC PLAYGROUND</div>
+      <h1>飲食紀錄表</h1>
+      <p>用假資料快速體驗飲食紀錄、熱量估算、今日總覽和推薦。所有操作只存在你的瀏覽器，不會送出任何私人資料。</p>
+      <div class="demo-actions">
+        <button class="btn btn-primary" id="demo-add-random">新增一筆範例</button>
+        <button class="btn btn-secondary" id="demo-reset">重置 Demo</button>
+      </div>
+    </div>
+    <div class="demo-plate" aria-hidden="true">
+      <div class="plate-core">
+        <span>🍱</span>
+        <strong id="hero-calories">0 kcal</strong>
+        <small>今日已記錄</small>
+      </div>
+    </div>
+  </section>
+
+  <section class="demo-grid">
+    <article class="demo-panel demo-span-2">
+      <div class="panel-header">
+        <div>
+          <h2>今日總覽</h2>
+          <p id="demo-date"></p>
+        </div>
+        <span class="tag tag-accent">靜態 demo</span>
+      </div>
+      <div class="metric-grid">
+        <div class="metric-card">
+          <span>熱量</span>
+          <strong id="metric-calories">0</strong>
+          <small>目標 1800 kcal</small>
+          <div class="meter"><i id="meter-calories"></i></div>
+        </div>
+        <div class="metric-card">
+          <span>蛋白質</span>
+          <strong id="metric-protein">0g</strong>
+          <small>目標 110g</small>
+          <div class="meter"><i id="meter-protein"></i></div>
+        </div>
+        <div class="metric-card">
+          <span>餐點數</span>
+          <strong id="metric-count">0</strong>
+          <small>今天的紀錄</small>
+          <div class="meter"><i id="meter-count"></i></div>
+        </div>
+      </div>
+    </article>
+
+    <article class="demo-panel">
+      <div class="panel-header">
+        <div>
+          <h2>AI 快速估算</h2>
+          <p>輸入一個餐點試玩</p>
+        </div>
+      </div>
+      <form id="demo-form" class="demo-form">
+        <input id="meal-name" type="text" placeholder="例：雞胸便當、牛肉麵、御飯糰" autocomplete="off">
+        <select id="meal-category">
+          <option value="健康餐盒">健康餐盒</option>
+          <option value="超商">超商</option>
+          <option value="台式">台式</option>
+          <option value="日式">日式</option>
+          <option value="早餐">早餐</option>
+        </select>
+        <button class="btn btn-primary" type="submit">估算並加入</button>
+      </form>
+      <div class="estimate-card" id="estimate-card">
+        <span>等待輸入</span>
+        <strong>Demo 會依關鍵字產生熱量與蛋白質</strong>
+      </div>
+    </article>
+
+    <article class="demo-panel demo-span-2">
+      <div class="panel-header">
+        <div>
+          <h2>餐點清單</h2>
+          <p>可新增、刪除、重置範例資料</p>
+        </div>
+      </div>
+      <div class="meal-list" id="meal-list"></div>
+    </article>
+
+    <article class="demo-panel">
+      <div class="panel-header">
+        <div>
+          <h2>今天還能吃什麼</h2>
+          <p>依剩餘熱量給建議</p>
+        </div>
+      </div>
+      <div class="recommend-list" id="recommend-list"></div>
+    </article>
+  </section>
+</main>
+
+<div id="toast-container"></div>
+
+<script>
+const demoMeals = [
+  { name: '舒肥雞胸藜麥餐盒', category: '健康餐盒', calories: 520, protein: 42, score: 88 },
+  { name: '鮭魚飯糰 + 茶葉蛋', category: '超商', calories: 390, protein: 24, score: 76 },
+  { name: '牛肉麵半碗', category: '台式', calories: 680, protein: 34, score: 62 }
+];
+
+const presets = [
+  ['雞胸沙拉', '健康餐盒'],
+  ['鮪魚御飯糰', '超商'],
+  ['日式豬排丼', '日式'],
+  ['蛋餅加無糖豆漿', '早餐'],
+  ['滷味青菜豆干', '台式']
+];
+
+const recommendations = [
+  { max: 350, name: '茶葉蛋 + 無糖豆漿', note: '補蛋白質，熱量輕巧' },
+  { max: 550, name: '雞胸飯糰 + 沙拉', note: '適合當晚餐或運動後補充' },
+  { max: 800, name: '健康餐盒半飯', note: '蛋白質穩，碳水可控' },
+  { max: 1200, name: '牛肉湯麵 + 燙青菜', note: '今天空間足夠，可以吃熱食' }
+];
+
+let meals = JSON.parse(localStorage.getItem('foodai-demo-meals') || 'null') || demoMeals;
+
+function save() {
+  localStorage.setItem('foodai-demo-meals', JSON.stringify(meals));
+}
+
+function toast(message) {
+  const box = document.getElementById('toast-container');
+  const item = document.createElement('div');
+  item.className = 'toast';
+  item.textContent = message;
+  box.appendChild(item);
+  setTimeout(() => {
+    item.style.opacity = '0';
+    item.style.transform = 'translateX(20px)';
+    setTimeout(() => item.remove(), 260);
+  }, 1800);
+}
+
+function estimateMeal(name, category) {
+  const text = `${name} ${category}`;
+  let calories = 520;
+  let protein = 28;
+  let score = 72;
+
+  if (/雞胸|舒肥|沙拉|健康/.test(text)) {
+    calories = 480;
+    protein = 42;
+    score = 88;
+  } else if (/飯糰|超商|豆漿|茶葉蛋/.test(text)) {
+    calories = 390;
+    protein = 22;
+    score = 76;
+  } else if (/牛肉|麵|丼|豬排/.test(text)) {
+    calories = 720;
+    protein = 34;
+    score = 61;
+  } else if (/早餐|蛋餅|吐司/.test(text)) {
+    calories = 560;
+    protein = 20;
+    score = 58;
+  }
+
+  return { name, category, calories, protein, score };
+}
+
+function render() {
+  const totalCalories = meals.reduce((sum, item) => sum + item.calories, 0);
+  const totalProtein = meals.reduce((sum, item) => sum + item.protein, 0);
+  const remaining = Math.max(0, 1800 - totalCalories);
+
+  document.getElementById('demo-date').textContent = new Date().toLocaleDateString('zh-TW', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    weekday: 'long'
+  });
+  document.getElementById('hero-calories').textContent = `${totalCalories} kcal`;
+  document.getElementById('metric-calories').textContent = totalCalories;
+  document.getElementById('metric-protein').textContent = `${totalProtein}g`;
+  document.getElementById('metric-count').textContent = meals.length;
+  document.getElementById('meter-calories').style.width = `${Math.min(totalCalories / 1800 * 100, 100)}%`;
+  document.getElementById('meter-protein').style.width = `${Math.min(totalProtein / 110 * 100, 100)}%`;
+  document.getElementById('meter-count').style.width = `${Math.min(meals.length / 5 * 100, 100)}%`;
+
+  document.getElementById('meal-list').innerHTML = meals.map((meal, index) => `
+    <div class="meal-row">
+      <div>
+        <div class="meal-title">
+          ${meal.name}
+          <span class="tag tag-green">${meal.category}</span>
+          <span class="tag tag-accent">${meal.score} 分</span>
+        </div>
+        <div class="meal-meta">${meal.calories} kcal · 蛋白質 ${meal.protein}g</div>
+      </div>
+      <div class="meal-score">
+        <strong>${meal.calories}</strong>
+        <small>kcal</small>
+        <button class="btn btn-ghost btn-sm delete-meal" data-index="${index}">刪除</button>
+      </div>
+    </div>
+  `).join('');
+
+  const picks = recommendations.filter(item => item.max <= Math.max(remaining, 350)).slice(-3).reverse();
+  document.getElementById('recommend-list').innerHTML = (picks.length ? picks : recommendations.slice(0, 2)).map(item => `
+    <div class="recommend-item">
+      <strong>${item.name}</strong>
+      <span>${item.note} · 剩餘約 ${remaining} kcal</span>
+    </div>
+  `).join('');
+
+  document.querySelectorAll('.delete-meal').forEach(button => {
+    button.addEventListener('click', () => {
+      meals.splice(Number(button.dataset.index), 1);
+      save();
+      render();
+      toast('已移除餐點');
+    });
+  });
+}
+
+document.getElementById('demo-form').addEventListener('submit', event => {
+  event.preventDefault();
+  const nameInput = document.getElementById('meal-name');
+  const categoryInput = document.getElementById('meal-category');
+  const name = nameInput.value.trim();
+  if (!name) {
+    nameInput.focus();
+    return;
+  }
+
+  const meal = estimateMeal(name, categoryInput.value);
+  meals.unshift(meal);
+  save();
+  render();
+  document.getElementById('estimate-card').innerHTML = `
+    <span>剛剛估算</span>
+    <strong>${meal.name}: ${meal.calories} kcal / 蛋白質 ${meal.protein}g / ${meal.score} 分</strong>
+  `;
+  nameInput.value = '';
+  toast('已加入 demo 餐點');
+});
+
+document.getElementById('demo-add-random').addEventListener('click', () => {
+  const pick = presets[Math.floor(Math.random() * presets.length)];
+  meals.unshift(estimateMeal(pick[0], pick[1]));
+  save();
+  render();
+  toast('已新增一筆範例');
+});
+
+document.getElementById('demo-reset').addEventListener('click', () => {
+  meals = [...demoMeals];
+  save();
+  render();
+  toast('Demo 已重置');
+});
+
+render();
+</script>
+</body>
+</html>
