@@ -1,0 +1,151 @@
+/* Buttons */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border-radius: var(--radius-sm);
+  font-size: 13.5px;
+  font-weight: 500;
+  transition: all var(--transition);
+  white-space: nowrap;
+}
+.btn-primary {
+  background: var(--accent);
+  color: #fff;
+}
+.btn-primary:hover { background: var(--accent-hover); }
+.btn-secondary {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+}
+.btn-secondary:hover { background: var(--bg-hover); border-color: var(--border-light); }
+.btn-ghost {
+  background: transparent;
+  color: var(--text-secondary);
+  padding: 5px 8px;
+}
+.btn-ghost:hover { background: var(--bg-hover); color: var(--text-primary); }
+.btn-danger { background: var(--red); color: #fff; }
+.btn-danger:hover { background: #dc2626; }
+.btn-sm { padding: 4px 10px; font-size: 12.5px; }
+.btn-icon { padding: 6px; border-radius: var(--radius-sm); }
+
+/* Tags / Chips */
+.tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 100px;
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+  background: var(--bg-hover);
+  color: var(--text-secondary);
+  border: 1px solid var(--border);
+}
+.tag-accent { background: var(--accent-soft); color: var(--accent); border-color: transparent; }
+.tag-green { background: var(--green-soft); color: var(--green); border-color: transparent; }
+.tag-red { background: var(--red-soft); color: var(--red); border-color: transparent; }
+.tag-yellow { background: var(--yellow-soft); color: var(--yellow); border-color: transparent; }
+.tag-blue { background: var(--blue-soft); color: var(--blue); border-color: transparent; }
+.tag-purple { background: var(--purple-soft); color: var(--purple); border-color: transparent; }
+
+/* Star rating display */
+.stars { display: inline-flex; gap: 2px; }
+.star { font-size: 14px; color: var(--star-empty); }
+.star.filled { color: var(--star-fill); }
+.stars-input { display: inline-flex; gap: 3px; cursor: pointer; }
+.stars-input .star { font-size: 22px; transition: color var(--transition); }
+.stars-input .star:hover, .stars-input .star.active { color: var(--star-fill); }
+
+/* Progress ring */
+.progress-ring {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+.progress-ring svg { transform: rotate(-90deg); }
+.progress-ring-label {
+  position: absolute;
+  text-align: center;
+  font-weight: 700;
+}
+
+/* Filter bar */
+.filter-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 10px 0;
+}
+.filter-bar input[type="text"], .filter-bar select {
+  height: 34px;
+  padding: 0 10px;
+}
+.filter-bar input[type="text"] { min-width: 200px; }
+.filter-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px 3px 10px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  border-radius: 100px;
+  font-size: 12.5px;
+  cursor: pointer;
+}
+.filter-chip:hover { background: rgba(200,130,74,0.2); }
+
+/* Badges */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  border-radius: 100px;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 0 5px;
+  background: var(--accent);
+  color: #fff;
+}
+
+/* Divider */
+.divider {
+  height: 1px;
+  background: var(--border);
+  margin: 16px 0;
+}
+
+/* Risk indicator */
+.risk-low  { color: var(--green); }
+.risk-med  { color: var(--yellow); }
+.risk-high { color: var(--red); }
+
+/* Satiety pills */
+.satiety-pill {
+  display: inline-block;
+  padding: 2px 7px;
+  border-radius: 4px;
+  font-size: 11.5px;
+}
+.satiety-很飽  { background: var(--green-soft); color: var(--green); }
+.satiety-微飽  { background: var(--blue-soft);  color: var(--blue); }
+.satiety-適中  { background: var(--yellow-soft); color: var(--yellow); }
+.satiety-偏少  { background: var(--red-soft);   color: var(--red); }
+
+/* Category badge */
+.cat-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11.5px;
+  font-weight: 500;
+  background: var(--bg-hover);
+  color: var(--text-secondary);
+}

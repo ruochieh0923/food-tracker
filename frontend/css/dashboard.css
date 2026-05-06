@@ -1,0 +1,140 @@
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin-bottom: 20px;
+}
+@media (max-width: 1100px) { .dashboard-grid { grid-template-columns: repeat(2, 1fr); } }
+
+.chart-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 20px;
+  box-shadow: var(--shadow-card);
+}
+.chart-card h3 {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 16px;
+}
+.chart-container { position: relative; height: 220px; }
+
+.leaderboard-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+}
+.leaderboard-row:last-child { border-bottom: none; }
+.leaderboard-rank {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 700;
+  background: var(--bg-hover);
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+.leaderboard-rank.gold   { background: var(--yellow-soft); color: var(--yellow); }
+.leaderboard-rank.silver { background: rgba(176,154,132,0.15); color: var(--text-muted); }
+.leaderboard-rank.bronze { background: rgba(180,120,60,0.15); color: #b4783c; }
+.leaderboard-info { flex: 1; min-width: 0; }
+.leaderboard-name {
+  font-weight: 500;
+  font-size: 13.5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.leaderboard-sub { font-size: 12px; color: var(--text-muted); }
+.leaderboard-score { font-weight: 700; font-family: var(--mono); color: var(--accent); }
+
+/* Analysis panel */
+.analysis-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 20px;
+}
+.analysis-verdict {
+  font-size: 15px;
+  font-weight: 600;
+  padding: 12px 16px;
+  border-radius: var(--radius-md);
+  background: var(--bg-tertiary);
+  margin-bottom: 14px;
+  line-height: 1.5;
+}
+.improvement-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 13.5px;
+}
+.improvement-item:last-child { border-bottom: none; }
+.improvement-item .num {
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 12px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+/* Macro progress bars */
+.macro-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 0;
+}
+.macro-label { width: 56px; font-size: 12px; color: var(--text-muted); }
+.macro-bar-wrap { flex: 1; height: 8px; background: var(--bg-hover); border-radius: 4px; overflow: hidden; }
+.macro-bar { height: 100%; border-radius: 4px; transition: width 0.5s ease; }
+.macro-bar.protein { background: var(--blue); }
+.macro-bar.carbs   { background: var(--yellow); }
+.macro-bar.fat     { background: var(--red); }
+.macro-bar.sodium  { background: var(--purple); }
+.macro-val { font-size: 12px; color: var(--text-secondary); width: 80px; text-align: right; font-family: var(--mono); }
+
+/* Score circle */
+.score-circle {
+  width: 80px; height: 80px;
+  border-radius: 50%;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  border: 3px solid var(--border);
+  font-weight: 700;
+}
+.score-circle.good  { border-color: var(--green); color: var(--green); }
+.score-circle.ok    { border-color: var(--yellow); color: var(--yellow); }
+.score-circle.poor  { border-color: var(--red); color: var(--red); }
+.score-circle .score-num { font-size: 22px; line-height: 1; }
+.score-circle .score-lbl { font-size: 10px; color: var(--text-muted); }
+
+/* Recommend cards */
+.rec-card {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+.rec-card:hover {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+.rec-name { font-weight: 600; font-size: 14px; margin-bottom: 4px; }
+.rec-stats { font-size: 12px; color: var(--text-muted); margin-bottom: 6px; font-family: var(--mono); }
+.rec-why { font-size: 12.5px; color: var(--text-secondary); }

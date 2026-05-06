@@ -1,0 +1,7 @@
+.env
+data/food_tracker.db
+data/imports/
+__pycache__/
+*.pyc
+.venv/
+venv/

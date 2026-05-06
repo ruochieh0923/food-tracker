@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI 美食評分 + 熱量管理</title>
+<link rel="stylesheet" href="/static/css/variables.css">
+<link rel="stylesheet" href="/static/css/layout.css">
+<link rel="stylesheet" href="/static/css/components.css">
+<link rel="stylesheet" href="/static/css/table.css">
+<link rel="stylesheet" href="/static/css/modal.css">
+<link rel="stylesheet" href="/static/css/dashboard.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.0.1/dist/chartjs-plugin-annotation.min.js"></script>
+</head>
+<body>
+<div class="app">
+
+  <!-- Sidebar -->
+  <nav class="sidebar">
+    <div class="sidebar-logo">
+      <span>🍜</span> FoodAI
+    </div>
+    <div class="sidebar-section">主要功能</div>
+    <div class="nav-item active" data-page="dashboard"><span class="icon">📊</span> 今日飲食總覽</div>
+    <div class="nav-item" data-page="meals"><span class="icon">🍽️</span> 餐點清單</div>
+    <div class="nav-item" data-page="analysis"><span class="icon">🧠</span> AI 分析</div>
+    <div class="sidebar-section">資料</div>
+    <div class="nav-item" data-page="import"><span class="icon">📥</span> 匯入資料</div>
+    <div class="nav-item" data-page="profile"><span class="icon">⚙️</span> 目標設定</div>
+  </nav>
+
+  <!-- Main -->
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-title">📊 Dashboard</div>
+      <div class="topbar-actions">
+        <button class="btn btn-primary" id="btn-add-meal">+ 新增餐點</button>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- Dashboard Page -->
+      <div class="page active" id="page-dashboard">
+
+        <!-- Today reminder banner -->
+        <div id="today-reminder" style="display:none;margin-bottom:14px">
+          <div style="background:var(--yellow-soft);border:1px solid var(--yellow);border-radius:var(--radius-md);padding:12px 16px;display:flex;align-items:center;gap:10px">
+            <span style="font-size:20px">⏰</span>
+            <div style="flex:1">
+              <strong style="color:var(--yellow)">今天還沒有飲食紀錄！</strong>
+              <span style="color:var(--text-secondary);font-size:13px;margin-left:8px">記得記錄今天吃了什麼</span>
+            </div>
+            <button class="btn btn-secondary btn-sm" onclick="UI.navigate('meals');Modal.openMealModal()">+ 立即新增</button>
+            <button class="btn-ghost btn-icon" onclick="document.getElementById('today-reminder').style.display='none'" style="font-size:16px;background:transparent;border:none;cursor:pointer;color:var(--text-muted)">×</button>
+          </div>
+        </div>
+
+        <div id="dashboard-summary">
+          <div class="loading"><div class="spinner"></div> 載入中…</div>
+        </div>
+
+        <!-- Today's meal list with edit -->
+        <div class="chart-card mt-6" id="today-meals-section">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+            <h3 style="margin:0">🗓️ 今日記錄</h3>
+            <button class="btn btn-primary btn-sm" id="today-add-btn">+ 補充新增</button>
+          </div>
+          <div id="today-meals-list">
+            <div class="loading"><div class="spinner"></div></div>
+          </div>
+        </div>
+
+        <!-- Quick Recommendation Section -->
+        <div class="chart-card mt-6" id="quick-rec-section">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+            <h3 style="margin:0">💡 今天還能吃什麼？</h3>
+            <div id="rec-type-tabs" style="display:flex;gap:6px;flex-wrap:wrap">
+              <button class="rec-type-btn btn btn-secondary btn-sm active" data-type="">全部推薦</button>
+              <button class="rec-type-btn btn btn-secondary btn-sm" data-type="超商">🏪 超商</button>
+              <button class="rec-type-btn btn btn-secondary btn-sm" data-type="自煮">🍳 自己煮</button>
+              <button class="rec-type-btn btn btn-secondary btn-sm" data-type="日式">🍱 日式</button>
+              <button class="rec-type-btn btn btn-secondary btn-sm" data-type="健康餐盒">🥗 健康餐盒</button>
+              <button class="rec-type-btn btn btn-secondary btn-sm" data-type="早餐">🥚 早餐</button>
+            </div>
+          </div>
+          <div id="quick-rec-panel" style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
+            <div class="loading"><div class="spinner"></div></div>
+          </div>
+        </div>
+
+        <div class="chart-card mt-6">
+          <h3>📈 本週熱量攝取趨勢</h3>
+          <div class="chart-container" style="height:200px"><canvas id="trend-chart"></canvas></div>
+        </div>
+
+        <div class="chart-card mt-6">
+          <h3>🏆 最高評分排行榜</h3>
+          <div id="leaderboard-list">
+            <div class="loading"><div class="spinner"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Meals Page -->
+      <div class="page" id="page-meals">
+        <div class="filter-bar">
+          <input type="text" id="filter-search" placeholder="🔍 搜尋餐點、店家、心得…">
+          <select id="filter-category"><option value="">所有類別</option></select>
+          <button class="btn btn-secondary btn-sm" id="filter-reset">重設</button>
+          <div style="margin-left:auto;color:var(--text-muted);font-size:12.5px" id="meals-count"></div>
+        </div>
+        <div id="meals-table-container">
+          <div class="loading"><div class="spinner"></div> 載入中…</div>
+        </div>
+        <div id="meals-pagination"></div>
+      </div>
+
+      <!-- Analysis Page -->
+      <div class="page" id="page-analysis">
+        <div class="card" style="margin-bottom:16px">
+          <div class="flex-row">
+            <div class="form-group" style="flex:0 0 auto">
+              <label class="form-label">分析日期</label>
+              <input type="date" id="analysis-date">
+            </div>
+            <div style="margin-top:20px;display:flex;gap:8px">
+              <button class="btn btn-primary" id="btn-analyze">🧠 分析今日飲食</button>
+              <button class="btn btn-secondary" id="btn-recommend">💡 獲取推薦</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid-2" style="align-items:start">
+          <div>
+            <div style="font-size:13px;font-weight:600;color:var(--text-muted);margin-bottom:10px">AI 分析結果</div>
+            <div id="analysis-panel">
+              <div class="empty-state"><div class="icon">🧠</div><p>點擊「分析今日飲食」開始</p></div>
+            </div>
+          </div>
+          <div>
+            <div style="font-size:13px;font-weight:600;color:var(--text-muted);margin-bottom:10px">個人化推薦</div>
+            <div id="rec-panel" style="display:flex;flex-direction:column;gap:10px">
+              <div class="empty-state"><div class="icon">💡</div><p>點擊「獲取推薦」</p></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Import Page -->
+      <div class="page" id="page-import">
+        <div class="card">
+          <div style="font-size:16px;font-weight:600;margin-bottom:4px">匯入 Google Sheet 資料</div>
+          <div style="color:var(--text-muted);font-size:13px;margin-bottom:20px">
+            從 Google Sheet 下載 CSV（檔案 → 下載 → CSV），然後拖曳至下方
+          </div>
+
+          <div class="flex-row" style="margin-bottom:16px">
+            <div class="form-group">
+              <label class="form-label">指定日期（選填）</label>
+              <input type="date" id="import-assign-date" placeholder="留空則無日期">
+            </div>
+          </div>
+
+          <div id="drop-zone" style="
+            border: 2px dashed var(--border);
+            border-radius: var(--radius-md);
+            padding: 60px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all var(--transition);
+            color: var(--text-muted);
+          ">
+            <div style="font-size:48px;margin-bottom:12px">📂</div>
+            <div style="font-size:15px;font-weight:500;margin-bottom:4px">拖曳 CSV 至此，或點擊選擇</div>
+            <div style="font-size:12.5px">支援欄位：種類、店家、品項、簡單評級、飽足感、價格、心得、熱量、回購意願</div>
+            <input type="file" id="csv-file-input" accept=".csv" style="display:none">
+          </div>
+          <div id="import-status"></div>
+        </div>
+      </div>
+
+      <!-- Profile Page -->
+      <div class="page" id="page-profile">
+        <div class="card" style="max-width:560px">
+          <div style="font-size:16px;font-weight:600;margin-bottom:20px">個人目標設定</div>
+          <div class="form-group" style="margin-bottom:14px">
+            <label class="form-label">名稱</label>
+            <input type="text" id="profile-name" placeholder="你的名字">
+          </div>
+          <div class="form-row" style="margin-bottom:14px">
+            <div class="form-group">
+              <label class="form-label">每日熱量目標 (TDEE)</label>
+              <input type="number" id="profile-tdee_calories" placeholder="1800">
+            </div>
+            <div class="form-group">
+              <label class="form-label">目標</label>
+              <select id="profile-goal">
+                <option value="fat_loss">減脂</option>
+                <option value="maintenance">維持</option>
+                <option value="muscle_gain">增肌</option>
+              </select>
+            </div>
+          </div>
+          <div style="font-size:12.5px;font-weight:600;color:var(--text-muted);margin-bottom:10px">巨量營養素目標</div>
+          <div class="form-row" style="margin-bottom:14px">
+            <div class="form-group">
+              <label class="form-label">蛋白質目標 (g)</label>
+              <input type="number" id="profile-target_protein_g" placeholder="120">
+            </div>
+            <div class="form-group">
+              <label class="form-label">碳水目標 (g)</label>
+              <input type="number" id="profile-target_carbs_g" placeholder="150">
+            </div>
+          </div>
+          <div class="form-row" style="margin-bottom:20px">
+            <div class="form-group">
+              <label class="form-label">脂肪目標 (g)</label>
+              <input type="number" id="profile-target_fat_g" placeholder="55">
+            </div>
+            <div class="form-group">
+              <label class="form-label">鈉目標 (mg)</label>
+              <input type="number" id="profile-target_sodium_mg" placeholder="2000">
+            </div>
+          </div>
+          <button class="btn btn-primary" id="profile-save-btn">儲存設定</button>
+        </div>
+      </div>
+
+    </div><!-- /content -->
+  </div><!-- /main -->
+</div><!-- /app -->
+
+<!-- Meal Modal -->
+<div class="modal-overlay hidden" id="meal-modal-overlay">
+  <div class="modal modal-wide">
+    <div class="modal-header">
+      <div class="modal-title" id="meal-modal-title">新增餐點</div>
+      <button class="modal-close" id="meal-modal-close">×</button>
+    </div>
+    <div class="modal-body">
+      <!-- Quick AI autocomplete zone -->
+      <div id="quick-input-zone" style="background:var(--bg-primary);border:1.5px solid var(--accent);border-radius:var(--radius-md);padding:14px 16px;margin-bottom:18px">
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px">
+          <span style="color:var(--accent);font-size:14px">✦</span>
+          <span style="font-size:13px;font-weight:600;color:var(--accent)">AI 快速補完</span>
+          <span style="font-size:12px;color:var(--text-muted);margin-left:4px">輸入簡短描述，AI 自動填入所有欄位</span>
+        </div>
+        <div style="display:flex;gap:8px">
+          <input type="text" id="quick-input-text" placeholder="例：麥當勞 雞塊 可樂 ／ 鹹水雞 雞胸 龍鬚菜 木耳 ／ 7-11 雞胸飯糰 茶葉蛋" style="flex:1;border-color:var(--border)">
+          <button type="button" class="btn btn-primary" id="btn-ai-autocomplete" style="white-space:nowrap">✦ AI 補完</button>
+        </div>
+        <div id="autocomplete-result" style="display:none;margin-top:10px"></div>
+      </div>
+
+      <form id="meal-form" onsubmit="return false">
+        <div class="form-row">
+          <div class="form-group" style="grid-column:1/-1">
+            <label class="form-label">餐點名稱 *</label>
+            <input type="text" name="meal_name" placeholder="例：豚骨蝦沾麵、雞腿飯">
+          </div>
+        </div>
+        <div class="form-row" style="margin-top:12px">
+          <div class="form-group">
+            <label class="form-label">店家</label>
+            <input type="text" name="restaurant" placeholder="店家名稱" list="restaurant-list" autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label class="form-label">類別</label>
+            <input type="text" name="category" placeholder="市府附近、健康餐盒…" list="category-list" autocomplete="off">
+          </div>
+        </div>
+        <!-- Datalists populated by JS -->
+        <datalist id="restaurant-list"></datalist>
+        <datalist id="category-list"></datalist>
+        <div class="form-row" style="margin-top:12px">
+          <div class="form-group">
+            <label class="form-label">日期</label>
+            <input type="date" name="date">
+          </div>
+          <div class="form-group">
+            <label class="form-label">價格 (NT$)</label>
+            <input type="number" name="price" placeholder="135">
+          </div>
+        </div>
+
+        <div class="form-section-title" style="margin-top:14px">評分</div>
+        <div class="form-row" style="margin-top:8px">
+          <div class="form-group">
+            <label class="form-label">整體星等</label>
+            <div id="rating-stars-input"></div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">回購意願 (0–5)</label>
+            <div id="repurchase-stars-input"></div>
+          </div>
+        </div>
+        <!-- Hidden field for rating_text, synced by JS -->
+        <input type="hidden" name="rating_text" id="rating-text-hidden">
+        <div class="form-row" style="margin-top:10px">
+          <div class="form-group">
+            <label class="form-label">簡單評級（自動對應星等）</label>
+            <div id="simple-rating-stars" style="display:flex;align-items:center;gap:12px">
+              <!-- Rendered by JS: 5 clickable star-label options -->
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">飽足感</label>
+            <select name="satiety">
+              <option value="">—</option>
+              <option value="很飽">很飽</option>
+              <option value="微飽">微飽</option>
+              <option value="適中">適中</option>
+              <option value="偏少">偏少</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-section-title">熱量與營養</div>
+        <div style="margin-top:8px">
+          <button type="button" class="btn btn-secondary btn-sm" id="btn-ai-estimate">✦ AI 估算熱量</button>
+          <span style="font-size:12px;color:var(--text-muted);margin-left:8px">填入餐點名稱後點擊自動估算</span>
+        </div>
+
+        <div id="ai-estimate-panel" class="ai-panel hidden" style="margin-top:10px">
+          <div class="ai-panel-title">✦ AI 估算結果 <span id="ai-cache-badge" class="tag tag-accent" style="display:none">快取</span></div>
+          <div class="ai-grid">
+            <div class="ai-field"><div class="ai-field-val" id="ai-cal">—</div><div class="ai-field-label">熱量 kcal</div></div>
+            <div class="ai-field"><div class="ai-field-val" id="ai-prot">—</div><div class="ai-field-label">蛋白質</div></div>
+            <div class="ai-field"><div class="ai-field-val" id="ai-carb">—</div><div class="ai-field-label">碳水</div></div>
+            <div class="ai-field"><div class="ai-field-val" id="ai-fat">—</div><div class="ai-field-label">脂肪</div></div>
+            <div class="ai-field"><div class="ai-field-val" id="ai-sod">—</div><div class="ai-field-label">鈉 mg</div></div>
+            <div class="ai-field"><div class="ai-field-val" id="ai-conf">—</div><div class="ai-field-label">信心度</div></div>
+          </div>
+          <div id="ai-fallback-warn" style="display:none;margin-top:6px;padding:6px 10px;background:var(--yellow-soft);color:var(--yellow);border-radius:var(--radius-sm);font-size:12px"></div>
+          <div class="ai-confidence">↑ 數值已自動填入下方欄位，可手動調整</div>
+        </div>
+
+        <div class="form-row-3" style="margin-top:12px">
+          <div class="form-group">
+            <label class="form-label">熱量 (kcal)</label>
+            <input type="number" name="calories" placeholder="650">
+          </div>
+          <div class="form-group">
+            <label class="form-label">蛋白質 (g)</label>
+            <input type="number" name="protein_g" placeholder="35">
+          </div>
+          <div class="form-group">
+            <label class="form-label">碳水 (g)</label>
+            <input type="number" name="carbs_g" placeholder="80">
+          </div>
+        </div>
+        <div class="form-row" style="margin-top:10px">
+          <div class="form-group">
+            <label class="form-label">脂肪 (g)</label>
+            <input type="number" name="fat_g" placeholder="20">
+          </div>
+          <div class="form-group">
+            <label class="form-label">鈉 (mg)</label>
+            <input type="number" name="sodium_mg" placeholder="800">
+          </div>
+        </div>
+
+        <div class="form-section-title">備註與標籤</div>
+        <div class="form-group" style="margin-top:8px">
+          <label class="form-label">心得</label>
+          <textarea name="notes" placeholder="記錄口感、食材、是否回購…" rows="3"></textarea>
+        </div>
+        <div class="form-group" style="margin-top:10px">
+          <label class="form-label">標籤</label>
+          <div class="tags-input-wrapper" id="tags-input-wrapper">
+            <input class="tags-input-inner" type="text" placeholder="輸入後按 Enter 新增標籤…">
+          </div>
+          <div class="form-hint">常用：高蛋白、低卡、舒肥、速食、健康餐</div>
+        </div>
+
+        <div class="form-group" style="margin-top:10px">
+          <label class="form-label">食物照 URL</label>
+          <input type="url" name="photo_url" placeholder="https://…">
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" id="meal-modal-cancel">取消</button>
+      <button class="btn btn-primary" id="meal-save-btn">儲存</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast-container"></div>
+
+<script src="/static/js/api.js"></script>
+<script src="/static/js/state.js"></script>
+<script src="/static/js/table.js"></script>
+<script src="/static/js/modal.js"></script>
+<script src="/static/js/dashboard.js"></script>
+<script src="/static/js/import.js"></script>
+<script src="/static/js/app.js"></script>
+</body>
+</html>
