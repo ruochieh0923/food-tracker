@@ -43,7 +43,7 @@ body {
   line-height: 1.6;
 }
 
-button, input, select {
+button, input, select, textarea {
   font: inherit;
 }
 
@@ -52,9 +52,8 @@ button {
   cursor: pointer;
 }
 
-input, select {
+input, select, textarea {
   width: 100%;
-  min-height: 42px;
   padding: 9px 12px;
   color: var(--coffee);
   background: var(--paper);
@@ -64,7 +63,17 @@ input, select {
   transition: 0.18s ease;
 }
 
-input:focus, select:focus {
+input, select {
+  min-height: 42px;
+}
+
+textarea {
+  min-height: 104px;
+  resize: vertical;
+  line-height: 1.55;
+}
+
+input:focus, select:focus, textarea:focus {
   border-color: var(--accent);
   box-shadow: 0 0 0 4px rgba(201, 131, 79, 0.13);
 }
@@ -308,7 +317,7 @@ h2 {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   gap: 12px;
-  align-items: center;
+  align-items: start;
   padding: 13px;
   background: var(--paper);
   border: 1px solid var(--line);
@@ -327,6 +336,25 @@ h2 {
   margin-top: 3px;
   color: var(--mocha);
   font-size: 13px;
+}
+
+.review {
+  margin-top: 9px;
+  padding: 10px 12px;
+  color: var(--mocha);
+  background: #fbf3e8;
+  border: 1px solid rgba(215, 184, 148, 0.42);
+  border-radius: 10px;
+  font-size: 13px;
+  white-space: pre-wrap;
+}
+
+.review-title {
+  display: block;
+  margin-bottom: 3px;
+  color: var(--accent-dark);
+  font-size: 12px;
+  font-weight: 900;
 }
 
 .meal-score {
@@ -455,7 +483,7 @@ h2 {
     <div>
       <div class="kicker">PUBLIC FRONTEND DEMO</div>
       <h1>飲食紀錄表</h1>
-      <p>可直接試玩的純前端版本。輸入餐點後會即時加入今日紀錄，並同步更新熱量、蛋白質與餐數；若沒填熱量，會用 mock AI 幫你估算。</p>
+      <p>可直接試玩的純前端版本。輸入餐點與食評心得後會即時加入今日紀錄，並同步更新熱量、蛋白質與餐數。</p>
       <div class="hero-actions">
         <button class="btn btn-primary" id="quick-sample">新增一筆範例</button>
         <button class="btn btn-secondary" id="reset-demo">重置 Demo</button>
@@ -518,6 +546,11 @@ h2 {
                 <option value="2">2 分 還好</option>
                 <option value="1">1 分 不回購</option>
               </select>
+            </div>
+
+            <div class="wide">
+              <label for="review">食評心得</label>
+              <textarea id="review" placeholder="例：口味清爽，青菜份量很多，雞肉偏嫩。下次想加木耳、少胡椒。"></textarea>
             </div>
           </div>
 
@@ -593,7 +626,7 @@ h2 {
 <div id="toast-container"></div>
 
 <script>
-const STORAGE_KEY = 'food-demo-v2-meals';
+const STORAGE_KEY = 'food-demo-v3-meals';
 
 const initialMeals = [
   {
@@ -603,6 +636,7 @@ const initialMeals = [
     calories: 480,
     protein: 36,
     rating: 5,
+    review: '蔬菜新鮮，雞胸不柴，半飯剛剛好。下次想改胡麻醬，應該會更香。',
     aiEstimated: true
   },
   {
@@ -612,15 +646,48 @@ const initialMeals = [
     calories: 400,
     protein: 22,
     rating: 4,
+    review: '',
     aiEstimated: true
   }
 ];
 
 const samples = [
-  { restaurant: '巷口鹹水雞', meal: '鹹水雞加龍鬚菜', price: 120, calories: '', protein: 38, rating: 5 },
-  { restaurant: '健康餐盒', meal: '雞腿便當半飯', price: 135, calories: '', protein: 40, rating: 4 },
-  { restaurant: '便利商店', meal: '超商雞胸飯糰', price: 89, calories: '', protein: 25, rating: 4 },
-  { restaurant: 'Poke 小店', meal: 'Poke 鮭魚豆腐碗', price: 180, calories: '', protein: 34, rating: 5 }
+  {
+    restaurant: '巷口鹹水雞',
+    meal: '鹹水雞加龍鬚菜',
+    price: 120,
+    calories: '',
+    protein: 38,
+    rating: 5,
+    review: '口味清爽，青菜份量很夠，雞肉偏嫩。下次可以加木耳、少胡椒。'
+  },
+  {
+    restaurant: '健康餐盒',
+    meal: '雞腿便當半飯',
+    price: 135,
+    calories: '',
+    protein: 40,
+    rating: 4,
+    review: '雞腿調味很香，配菜不會水煮味太重。半飯份量剛好，吃完不會太撐。'
+  },
+  {
+    restaurant: '便利商店',
+    meal: '超商雞胸飯糰',
+    price: 89,
+    calories: '',
+    protein: 25,
+    rating: 4,
+    review: '方便快速，蛋白質還可以，但生菜口感普通。適合趕時間時買。'
+  },
+  {
+    restaurant: 'Poke 小店',
+    meal: 'Poke 鮭魚豆腐碗',
+    price: 180,
+    calories: '',
+    protein: 34,
+    rating: 5,
+    review: '鮭魚和豆腐搭起來很舒服，份量足但不膩。下次想醬料減半。'
+  }
 ];
 
 const recommendations = [
@@ -683,6 +750,7 @@ function addMeal(input) {
     calories,
     protein,
     rating: Number(input.rating) || 3,
+    review: input.review || '',
     aiEstimated: !(Number(input.calories) > 0)
   });
 
@@ -724,27 +792,37 @@ function renderMeals() {
     return;
   }
 
-  list.innerHTML = meals.map((item, index) => `
-    <div class="meal-row">
-      <div>
-        <div class="meal-title">
-          ${escapeHtml(item.meal)}
-          <span class="tag tag-green">${escapeHtml(item.restaurant)}</span>
-          <span class="tag tag-accent">${item.rating} 分</span>
-          ${item.aiEstimated ? '<span class="tag tag-blue">AI 估算</span>' : ''}
+  list.innerHTML = meals.map((item, index) => {
+    const reviewText = item.review && item.review.trim()
+      ? escapeHtml(item.review.trim())
+      : '尚未填寫心得';
+
+    return `
+      <div class="meal-row">
+        <div>
+          <div class="meal-title">
+            ${escapeHtml(item.meal)}
+            <span class="tag tag-green">${escapeHtml(item.restaurant)}</span>
+            <span class="tag tag-accent">${item.rating} 分</span>
+            ${item.aiEstimated ? '<span class="tag tag-blue">AI 估算</span>' : ''}
+          </div>
+          <div class="meal-meta">
+            ${item.price ? `NT$ ${item.price} · ` : ''}
+            ${item.calories} kcal · 蛋白質 ${item.protein}g
+          </div>
+          <div class="review">
+            <span class="review-title">食評心得</span>
+            ${reviewText}
+          </div>
         </div>
-        <div class="meal-meta">
-          ${item.price ? `NT$ ${item.price} · ` : ''}
-          ${item.calories} kcal · 蛋白質 ${item.protein}g
+        <div class="meal-score">
+          <strong>${item.calories}</strong>
+          <small>kcal</small>
+          <button class="btn btn-ghost" data-delete="${index}">刪除</button>
         </div>
       </div>
-      <div class="meal-score">
-        <strong>${item.calories}</strong>
-        <small>kcal</small>
-        <button class="btn btn-ghost" data-delete="${index}">刪除</button>
-      </div>
-    </div>
-  `).join('');
+    `;
+  }).join('');
 
   document.querySelectorAll('[data-delete]').forEach(button => {
     button.addEventListener('click', () => {
@@ -813,7 +891,8 @@ document.getElementById('meal-form').addEventListener('submit', event => {
     price: document.getElementById('price').value,
     calories: document.getElementById('calories').value,
     protein: document.getElementById('protein').value,
-    rating: document.getElementById('rating').value
+    rating: document.getElementById('rating').value,
+    review: document.getElementById('review').value.trim()
   });
 
   clearForm();
